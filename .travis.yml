@@ -1,0 +1,32 @@
+language: node_js
+node_js:
+  - 13
+
+services:
+  - docker
+
+# Pre-testing installs
+install:
+  - echo "nothing needs to be installed"
+
+# Scripts to be run such as tests
+before_script:
+  - echo "no tests"
+
+script:
+  - docker --version # print the version for logging
+  - docker build -t udagram-users --build-arg POSTGRES_USERNAME=${POSTGRES_USERNAME} --build-arg POSTGRES_PASSWORD=${POSTGRES_PASSWORD} -build-arg POSTGRES_HOST=${POSTGRES_HOST} -build-arg POSTGRES_DB=${POSTGRES_DB} -build-arg AWS_BUCKET=${AWS_BUCKET} -build-arg AWS_REGION=${AWS_REGION} -build-arg AWS_PROFILE=${AWS_PROFILE} -build-arg JWT_SECRET=${JWT_SECRET} -build-arg URL=${URL} ./users
+  - docker tag udagram-users jatobrun/udagram-users:latest
+  - docker build -t udagram-feed --build-arg POSTGRES_USERNAME=${POSTGRES_USERNAME} --build-arg POSTGRES_PASSWORD=${POSTGRES_PASSWORD} -build-arg POSTGRES_HOST=${POSTGRES_HOST} -build-arg POSTGRES_DB=${POSTGRES_DB} -build-arg AWS_BUCKET=${AWS_BUCKET} -build-arg AWS_REGION=${AWS_REGION} -build-arg AWS_PROFILE=${AWS_PROFILE} -build-arg JWT_SECRET=${JWT_SECRET} -build-arg URL=${URL} ./feed
+  - docker tag udagram-feed jatobrun/udagram-feed:latest
+  - docker build -t udagram-proxy ./reverse-proxy
+  - docker tag udagram.proxy jatobrun/udagram-proxy:latest
+  - docker build -t udagram-frontend --build-arg POSTGRES_USERNAME=${POSTGRES_USERNAME} --build-arg POSTGRES_PASSWORD=${POSTGRES_PASSWORD} -build-arg POSTGRES_HOST=${POSTGRES_HOST} -build-arg POSTGRES_DB=${POSTGRES_DB} -build-arg AWS_BUCKET=${AWS_BUCKET} -build-arg AWS_REGION=${AWS_REGION} -build-arg AWS_PROFILE=${AWS_PROFILE} -build-arg JWT_SECRET=${JWT_SECRET} -build-arg URL=${URL} ./frontend
+  - docker tag udagram-frontend jatobrun/udagram-frontend:latest
+
+after_success:
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker push jatobrun/udagram-users
+  - docker push jatobrun/udagram-feed
+  - docker push jatobrun/udagram-proxy
+  - docker push jatobrun/udagram-frontend
