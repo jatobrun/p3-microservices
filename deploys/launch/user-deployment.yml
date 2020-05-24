@@ -17,14 +17,7 @@ spec:
       containers:
       - name: udagram-user
         image: jatobrun/udagram-users:latest
-        imagePullPolicy: Always  
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "250m"
-          limits:
-            memory: "1024Mi"
-            cpu: "500m"      
+        imagePullPolicy: Always      
         env:
         - name: URL
           valueFrom:
@@ -48,8 +41,8 @@ spec:
               key: POSTGRES_HOST
         - name: POSTGRES_PASSWORD
           valueFrom:
-            secretKeyRef:
-              name: env-secret
+            configMapKeyRef:
+              name: env-config
               key: POSTGRES_PASSWORD
         - name: POSTGRES_USERNAME
           valueFrom:
